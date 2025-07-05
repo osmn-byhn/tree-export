@@ -1,26 +1,28 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
+const { program } = require('commander');
 const path = require('path');
+const { generateTree } = require('../lib/tree-generator');
+const { exportOutput } = require('../utils/export');
 
-function generateTree(dirPath, prefix = '') {
-  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-  let tree = '';
+program
+  .version('1.0.0')
+  .description('Export folder structure as a tree')
+  .option('-d, --dir <directory>', 'Target directory', '.')
+  .option('-o, --output <file>', 'Output file (default: tree-output.md)', 'tree-output.md')
+  .option('-f, --format <type>', 'Output format: txt, md, mdx, png, jpg, svg', 'md')
+  .parse(process.argv);
 
-  entries.forEach((entry, index) => {
-    const isLast = index === entries.length - 1;
-    const connector = isLast ? '└── ' : '├── ';
-    const fullPath = path.join(dirPath, entry.name);
+const options = program.opts();
 
-    tree += `${prefix}${connector}${entry.name}\n`;
+// ✅ always resolve target directory relative to where user is
+const targetDir = path.resolve(process.cwd(), options.dir);
 
-    if (entry.isDirectory()) {
-      const newPrefix = prefix + (isLast ? '    ' : '│   ');
-      tree += generateTree(fullPath, newPrefix);
-    }
-  });
+// ✅ always resolve output file relative to where user is
+const outputPath = path.isAbsolute(options.output)
+  ? options.output
+  : path.resolve(process.cwd(), options.output);
 
-  return tree;
-}
-
-module.exports = { generateTree };
+// 🔧 generate tree and export it
+const tree = generateTree(targetDir);
+exportOutput(tree, outputPath, options.format);
