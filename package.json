@@ -1,6 +1,6 @@
 {
   "name": "tree-export",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Export your folder structure as a tree in various formats",
   "main": "bin/index.js",
   "bin": {
